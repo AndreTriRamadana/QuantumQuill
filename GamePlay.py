@@ -1,105 +1,146 @@
+from typing import Any
 import pygame
-import sys
+from pygame.locals import *
 import random
 
-# Inisialisasi Pygame
 pygame.init()
 
-# Konstanta
-SCREEN_WIDTH = 288
-SCREEN_HEIGHT = 512
-PIPE_WIDTH = 52
-PIPE_HEIGHT = 320
-BIRD_WIDTH = 34
-BIRD_HEIGHT = 24
-PIPE_GAP = 100
-GRAVITY = 1
-BIRD_JUMP = -10
-FPS = 30
-WHITE = (255, 255, 255)
+clock = pygame.time.Clock()
+fps = 60
 
-# Membuat layar
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("PlayBird")
+lebar_layar = 450
+tinggi_layar = 680
 
-# Menggambar latar belakang
-background = pygame.image.load('background.png')
+screen = pygame.display.set_mode((lebar_layar, tinggi_layar))
+pygame.display.set_caption('Flapping Bird')
 
-# Menggambar burung
-bird = pygame.image.load('bird.png')
-bird_rect = bird.get_rect()
-bird_x = 50
-bird_y = (SCREEN_HEIGHT // 2) - (BIRD_HEIGHT // 2)
-bird_speed = 0
-
-# Menggambar pipa
-pipe = pygame.image.load('pipe.png')
-pipe_x = SCREEN_WIDTH
-pipe_height = random.randint(100, 400)
-
-# Menggambar skor
+ground_scroll = 0
+scroll_speed = 5
+flying = False
+game_over = False
+pipe_gap = 150
+pipe_frequency = 1500
+last_pipe = pygame.time.get_ticks() - pipe_frequency
 score = 0
-font = pygame.font.Font(None, 36)
+pass_pipe = false
 
-# Fungsi untuk mengatur permainan
-def game_over():
-    game_over_text = font.render('Game Over', True, (255, 0, 0))
-    game_over_rect = game_over_text.get_rect()
-    game_over_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
-    screen.blit(game_over_text, game_over_rect)
-    pygame.display.flip()
-    pygame.time.wait(2000)
-    pygame.quit()
-    sys.exit()
+bg = pygame.image.load('flappy bg.png')
+ground_img = pygame.image.load('floor-sprite.png')
 
-# Loop permainan
-while True:
+class Bird(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.images = []
+        self.index = 0
+        self.counter = 0
+        for num in range (1, 4):
+            img = pygame.image.load(f'bird{num}.png')
+            self.images.append(img)
+        self.image = self.images[self.index]
+        self.rect = self.image.get_rect()
+        self.rect.center = [x, y]
+        self.vel = 0
+
+    def update(self):
+        if flying == True:
+            self.vel += 0.5
+            if self.vel > 8:
+                self.vel = 8
+            if self.rect.bottom < 550:
+                self.rect.y += int(self.vel)
+
+        if game_over == False:
+            if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False:
+                self.clicked = True
+                self.vel = -10
+            if pygame.mouse.get_pressed()[0] == 0:
+                self.clicked = False
+            
+            self.counter += 1
+            flap_cooldown = 3
+            if self.counter > flap_cooldown:
+                self.counter = 0
+                self.index += 1
+                if self.index >= len(self.images):
+                    self.index = 0
+            self.image = self.images[self.index]
+
+            self.image = pygame.transform.rotate(self.images[self.index], self.vel * -3)
+        else:
+            self.image = pygame.transform.rotate(self.images[self.index], -90)
+
+class Pipe(pygame.sprite.Sprite):
+    def __init__(self, x, y, position):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load('pipe.png')
+        self.rect = self.image.get_rect()
+        if position == 1:
+            self.image = pygame.transform.flip(self.image, False, True)
+            self.rect.bottomleft = [x, y - int(pipe_gap / 2)]
+        if position == -1:
+            self.rect.topleft = [x, y + int(pipe_gap / 2)]
+        
+    def update(self):
+        self.rect.x -= scroll_speed
+        if self.rect.right < 0:
+            self.kill()
+
+
+bird_group = pygame.sprite.Group()
+pipe_group = pygame.sprite.Group()
+
+flappy = Bird(100, int(tinggi_layar / 2))
+
+bird_group.add(flappy)
+
+run = True
+while run:
+
+    clock.tick(fps)
+
+    screen.blit(bg, (0,0))
+
+    bird_group.draw(screen)
+    bird_group.update()
+    pipe_group.draw(screen)
+
+    screen.blit(ground_img, (ground_scroll, 550))
+
+    if len(pipe_group) > 0:
+        if bird_group.sprites()[0].rect.left > pipe_group.sprites()[0].rect.left\
+            and bird_group.sprites()[0].rect.right < pipe_group.sprites()[0].rect.right\
+            and pass_pipe = False:
+            pass_pipe = True
+
+    if pygame.sprite.groupcollide(bird_group, pipe_group, False, False) or flappy.rect.top < 0:
+        game_over = True
+
+    if flappy.rect.bottom >= 550:
+        game_over = True
+        flying = False
+
+    if game_over == False and flying == True:
+        time_now = pygame.time.get_ticks()
+        if time_now - last_pipe > pipe_frequency:
+            tinggi_pipa = random.randint(-100, 100)
+            pipa_bawah = Pipe(lebar_layar, int(tinggi_layar / 2) + tinggi_pipa,-1)
+            pipa_atas = Pipe(lebar_layar, int(tinggi_layar / 2) + tinggi_pipa, 1)
+            pipe_group.add(pipa_bawah)
+            pipe_group.add(pipa_atas)
+            last_pipe = time_now
+
+        ground_scroll -= scroll_speed
+        if abs(ground_scroll) > 35:
+            ground_scroll = 0
+
+        pipe_group.update()
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
-                bird_speed = BIRD_JUMP
-
-    # Menggerakkan burung
-    bird_speed += GRAVITY
-    bird_y += bird_speed
-
-    # Menggerakkan pipa
-    pipe_x -= 5
-    if pipe_x < -PIPE_WIDTH:
-        pipe_x = SCREEN_WIDTH
-        pipe_height = random.randint(100, 400)
-
-    # Memeriksa tabrakan
-    if bird_y <= 0 or bird_y >= SCREEN_HEIGHT:
-        game_over()
-
-    if bird_x + BIRD_WIDTH >= pipe_x and bird_x <= pipe_x + PIPE_WIDTH:
-        if bird_y <= pipe_height or bird_y + BIRD_HEIGHT >= pipe_height + PIPE_GAP:
-            game_over()
-
-    # Menggambar latar belakang
-    screen.blit(background, (0, 0))
-
-    # Menggambar pipa
-    screen.blit(pipe, (pipe_x, 0))
-    screen.blit(pipe, (pipe_x, pipe_height + PIPE_GAP))
-
-    # Menggambar burung
-    screen.blit(bird, (bird_x, bird_y))
-
-    # Menggambar skor
-    score_text = font.render(str(score), True, WHITE)
-    screen.blit(score_text, (SCREEN_WIDTH // 2, 50))
+            run = False
+        if event.type == pygame.MOUSEBUTTONDOWN and flying == False and game_over == False:
+            flying = True
 
     pygame.display.update()
-
-    # Menambah skor
-    if pipe_x + PIPE_WIDTH < bird_x and pipe_x + PIPE_WIDTH > bird_x - 5:
-        score += 1
-
-    # FPS
-    pygame.time.Clock().tick(FPS)
+    
+pygame.quit()
