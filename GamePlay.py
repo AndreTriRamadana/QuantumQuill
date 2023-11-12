@@ -14,7 +14,7 @@ tinggi_layar = 680
 screen = pygame.display.set_mode((lebar_layar, tinggi_layar))
 pygame.display.set_caption('Flapping Bird')
 
-font = pygame.font.SysFont('Bauhaus 93, 60')
+font = pygame.font.SysFont('PressStart2P-Regular', 40)
 
 white = (255, 255, 255)
 
@@ -23,17 +23,17 @@ scroll_speed = 5
 flying = False
 game_over = False
 pipe_gap = 150
-pipe_frequency = 1500
+pipe_frequency = 1200
 last_pipe = pygame.time.get_ticks() - pipe_frequency
 score = 0
-pass_pipe = false
+pass_pipe = False
 
 bg = pygame.image.load('flappy bg.png')
 ground_img = pygame.image.load('floor-sprite.png')
 
 def draw_text(text, font, text_col, x, y):
-    img = font.render(text, True,, text_col)
-    screen.bilt(img(x, y))
+    img = font.render(text, True, text_col)
+    screen.blit(img, (x, y))
 
 class Bird(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -117,14 +117,14 @@ while run:
     if len(pipe_group) > 0:
         if bird_group.sprites()[0].rect.left > pipe_group.sprites()[0].rect.left\
             and bird_group.sprites()[0].rect.right < pipe_group.sprites()[0].rect.right\
-            and pass_pipe = False:
+            and pass_pipe == False:
             pass_pipe = True
-        if pass_pipe = True:
+        if pass_pipe == True:
             if bird_group.sprites()[0].rect.left > pipe_group.sprites()[0].rect.right:
                 score += 1
                 pass_pipe = False
 
-    draw_text(str(score), font, white, int(screen_width / 2), 20
+    draw_text(str(score), font, white, int(lebar_layar / 2), 20)
 
     if pygame.sprite.groupcollide(bird_group, pipe_group, False, False) or flappy.rect.top < 0:
         game_over = True
