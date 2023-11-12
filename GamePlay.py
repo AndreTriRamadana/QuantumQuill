@@ -30,6 +30,7 @@ pass_pipe = false
 
 bg = pygame.image.load('flappy bg.png')
 ground_img = pygame.image.load('floor-sprite.png')
+button_img = pygame.image.load('restart.png')
 
 def draw_text(text, font, text_col, x, y):
     img = font.render(text, True,, text_col)
@@ -93,6 +94,20 @@ class Pipe(pygame.sprite.Sprite):
         if self.rect.right < 0:
             self.kill()
 
+class Button():
+    def __init__(self, x, y, image):
+        self.image = image
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x, y)
+    def draw(self):
+        action = False
+        pos = pygame.mouse.get_pos()
+        if self.rect.collidepoint(pos):
+            if pygame.mouse.get_pressed()[0] == 1:
+                action = True
+        screen.blit(self.image, (self.rect.x, self.rect.y))
+
+        return action
 
 bird_group = pygame.sprite.Group()
 pipe_group = pygame.sprite.Group()
@@ -100,6 +115,8 @@ pipe_group = pygame.sprite.Group()
 flappy = Bird(100, int(tinggi_layar / 2))
 
 bird_group.add(flappy)
+
+button = Button(lebar_layar // 2 - 50)
 
 run = True
 while run:
@@ -148,6 +165,10 @@ while run:
             ground_scroll = 0
 
         pipe_group.update()
+
+    if game_over == True:
+        if button.draw() == True:
+            
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
