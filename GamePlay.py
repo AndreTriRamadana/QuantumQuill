@@ -14,7 +14,7 @@ tinggi_layar = 680
 screen = pygame.display.set_mode((lebar_layar, tinggi_layar))
 pygame.display.set_caption('Flapping Bird')
 
-font = pygame.font.SysFont('Bauhaus 93, 60')
+font = pygame.font.SysFont('PressStart2P-Regular', 45)
 
 white = (255, 255, 255)
 
@@ -26,20 +26,23 @@ pipe_gap = 150
 pipe_frequency = 1500
 last_pipe = pygame.time.get_ticks() - pipe_frequency
 score = 0
-pass_pipe = false
+pass_pipe = False
 
 bg = pygame.image.load('flappy bg.png')
 ground_img = pygame.image.load('floor-sprite.png')
 button_img = pygame.image.load('restart.png')
 
 def draw_text(text, font, text_col, x, y):
-    img = font.render(text, True,, text_col)
-    screen.bilt(img(x, y))
+    img = font.render(text, True, text_col)
+    screen.blit(img, (x, y))
 
 def reset_game():
     pipe_group.empty()
     flappy.rect.x = 100
     flappy.rect.y = int(tinggi_layar / 2)
+    flappy.vel = 0  # Reset bird's velocity
+    flappy.index = 1  # Reset bird's animation index
+    flappy.image = flappy.images[flappy.index]  # Reset bird's image to the first frame
     score = 0
     return score
 
@@ -123,7 +126,7 @@ flappy = Bird(100, int(tinggi_layar / 2))
 
 bird_group.add(flappy)
 
-button = Button(lebar_layar // 2 - 50)
+button = Button(lebar_layar // 2 - 50, tinggi_layar // 2 - 25, button_img)
 
 run = True
 while run:
@@ -141,14 +144,14 @@ while run:
     if len(pipe_group) > 0:
         if bird_group.sprites()[0].rect.left > pipe_group.sprites()[0].rect.left\
             and bird_group.sprites()[0].rect.right < pipe_group.sprites()[0].rect.right\
-            and pass_pipe = False:
+            and pass_pipe == False:
             pass_pipe = True
-        if pass_pipe = True:
+        if pass_pipe == True:
             if bird_group.sprites()[0].rect.left > pipe_group.sprites()[0].rect.right:
                 score += 1
                 pass_pipe = False
 
-    draw_text(str(score), font, white, int(screen_width / 2), 20
+    draw_text(str(score), font, white, int(lebar_layar / 2) , 20)
 
     if pygame.sprite.groupcollide(bird_group, pipe_group, False, False) or flappy.rect.top < 0:
         game_over = True
