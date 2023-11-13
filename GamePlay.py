@@ -28,7 +28,7 @@ last_pipe = pygame.time.get_ticks() - pipe_frequency
 score = 0
 pass_pipe = False
 
-bg = pygame.image.load('flappy bg.png')
+bg = pygame.image.load('flappy-bg.png')
 ground_img = pygame.image.load('floor-sprite.png')
 button_img = pygame.image.load('restart.png')
 
