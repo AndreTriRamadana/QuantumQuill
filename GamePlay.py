@@ -36,6 +36,13 @@ def draw_text(text, font, text_col, x, y):
     img = font.render(text, True,, text_col)
     screen.bilt(img(x, y))
 
+def reset_game():
+    pipe_group.empty()
+    flappy.rect.x = 100
+    flappy.rect.y = int(tinggi_layar / 2)
+    score = 0
+    return score
+
 class Bird(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
@@ -168,7 +175,8 @@ while run:
 
     if game_over == True:
         if button.draw() == True:
-            
+            game_over = False
+            score = reset_game()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
