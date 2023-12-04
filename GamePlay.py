@@ -1,61 +1,68 @@
-from tkinter import *
-from tkinter.ttk import *
+# Import necessary libraries and modules
+from tkinter import *   #bawaan python, antarmuka grafis pengguna (GUI)
+from tkinter.ttk import * #sub library, menyediakan widget
 
-from typing import Any
-import pygame
-from pygame.locals import *
-import random
+from typing import Any #menyediakan tipe dan fungsi-fungsi terkait tipe data untuk melakukan tipe hinting, any mewakili tipe data
+import pygame  #untuk membuat game pada python
+from pygame.locals import * #Ini mengimpor semua konstanta yang diperlukan untuk penggunaan Pygame. seperti QUIT (untuk menghandle event keluar), 
+import random #digunakan untuk menghasilkan angka acak di Python.
 
-pygame.init()
-pygame.mixer.init()
+# Initialize Pygame
+pygame.init()  #Fungsi ini digunakan untuk menginisialisasi semua modul yang terlibat dalam fungsi Pygame
+pygame.mixer.init() #Fungsi ini adalah bagian dari inisialisasi suara dalam Pygame.
 
-clock = pygame.time.Clock()
-fps = 60
-
-lebar_layar = 450
-tinggi_layar = 680
-
-screen = pygame.display.set_mode((lebar_layar, tinggi_layar))
+# Set up display
+clock = pygame.time.Clock() #
+fps = 60  
+lebar_layar = 450   
+tinggi_layar = 680   
+screen = pygame.display.set_mode((lebar_layar, tinggi_layar))  #digunakan untuk membuat jendela layar permainan dengan ukuran yang telah ditentukan 
 pygame.display.set_caption('QuantumQuill Technology')
 
+# Set up fonts, colors, and game variables
 font = pygame.font.SysFont('PressStart2P-Regular', 45)
-
 white = (255, 255, 255)
-
 ground_scroll = 0
 scroll_speed = 5
 flying = False
 game_over = False
-pipe_gap = 150
+pipe_gap = 150  #digunakan untuk menentukan jarak antara pipa atas dan bawah pada permainan Flappy Bird
 pipe_frequency = 1000
-last_pipe = pygame.time.get_ticks() - pipe_frequency
+last_pipe = pygame.time.get_ticks() - pipe_frequency  #digunakan untuk menyimpan waktu (dalam milidetik) terakhir ketika pipa terakhir kali muncul
 score = 0
 pass_pipe = False
 
+# Load game assets
 bg = pygame.image.load('assets/img/flappy-bg.png')
 ground_img = pygame.image.load('assets/img/floor-sprite.png')
 button_img = pygame.image.load('assets/img/restart.png')
 lobby_sound = pygame.mixer.Sound('assets/musik/Loby.wav')
-lobby_sound.play(-1) 
+lobby_sound.play(-1)  #menginstruksikan Pygame untuk memainkan suara lobby_sound secara terus-menerus sebagai suara latar belakang permainan dengan argumen loops yang diatur ke -1
 score_sound = pygame.mixer.Sound('assets/musik/score.wav')
 pass_pipe_sound = pygame.mixer.Sound('assets/musik/sound.wav')
 game_over_sound = pygame.mixer.Sound('assets/musik/over.wav')
 restart_sound = pygame.mixer.Sound('assets/musik/start.wav')
+
+# Set up loading screen variables
 loading_screen = pygame.image.load('assets/img/loading.jpeg')
 is_loading = True
 loading_done = False
 loading_start_time = pygame.time.get_ticks()  
 loading_font = pygame.font.SysFont('PressStart2P-Regular', 25)  # Font untuk tulisan di layar loading
 
+# Set up sound channels
 channel_lobby = pygame.mixer.Channel(0)  # Channel untuk suara latar belakang
 channel_game_over = pygame.mixer.Channel(1)  # Channel untuk suara game over
 channel_score = pygame.mixer.Channel(2)  # Channel untuk suara penambahan skor
 
+# Define function to draw text on screen
 def draw_text(text, font, text_col, x, y):
     img = font.render(text, True, text_col)
     screen.blit(img, (x, y))
 
+# Define function to reset game state
 def reset_game():
+    # ... (reset various game elements)
     pipe_group.empty()
     flappy.rect.x = 100
     flappy.rect.y = int(tinggi_layar / 2)
@@ -65,7 +72,9 @@ def reset_game():
     score = 0
     return score
 
+# Define Bird class
 class Bird(pygame.sprite.Sprite):
+    # ... (initialize and update methods)
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
         self.images = []
@@ -78,7 +87,6 @@ class Bird(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = [x, y]
         self.vel = 0
-
     def update(self):
         if flying == True:
             self.vel += 0.5
@@ -107,7 +115,9 @@ class Bird(pygame.sprite.Sprite):
         else:
             self.image = pygame.transform.rotate(self.images[self.index], -90)
 
+# Define Pipe class
 class Pipe(pygame.sprite.Sprite):
+    # ... (initialize and update methods)
     def __init__(self, x, y, position):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.image.load('assets/img/pipe.png')
@@ -123,7 +133,9 @@ class Pipe(pygame.sprite.Sprite):
         if self.rect.right < 0:
             self.kill()
 
+# Define Button class
 class Button():
+    # ... (initialize and draw methods)
     def __init__(self, x, y, image):
         self.image = image
         self.rect = self.image.get_rect()
@@ -138,23 +150,26 @@ class Button():
 
         return action
 
+# Create sprite groups
 bird_group = pygame.sprite.Group()
 pipe_group = pygame.sprite.Group()
 
+# Create Bird object and add to bird_group
 flappy = Bird(100, int(tinggi_layar / 2))
-
 bird_group.add(flappy)
 
+# Create Button object
 button = Button(lebar_layar // 2 - 50, tinggi_layar // 2 - 25, button_img)
 
-
+# Loading screen loop
 while is_loading:
+    # ... (display loading screen and wait for 5 seconds)
     current_time = pygame.time.get_ticks()
     screen.blit(loading_screen, (0, 0))
 
     # Menampilkan tulisan di tengah layar
     if not loading_done:
-        loading_text = "Welcome, Sedang mempersiapkan game! Loading..."
+        loading_text = "Loading..."
         text_width, text_height = loading_font.size(loading_text)
         text_x = (lebar_layar - text_width) // 2
         text_y = (tinggi_layar - text_height) // 2
@@ -169,9 +184,10 @@ while is_loading:
     if loading_done:
         is_loading = False  # Keluar dari loop loading setelah 5 detik
 
+# Main game loop
 run = True
 while run:
-
+    # ... (game loop logic)
     clock.tick(fps)
 
     screen.blit(bg, (0,0))
@@ -242,12 +258,13 @@ while run:
             score = reset_game()
             restart_sound.play()
             
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            run = False
-        if event.type == pygame.MOUSEBUTTONDOWN and flying == False and game_over == False:
-            flying = True
+    for event in pygame.event.get():  # Ini adalah loop yang digunakan untuk mendapatkan dan menangani semua event yang terjadi di dalam permainan
+        if event.type == pygame.QUIT:  # Pengecekan ini dilakukan untuk menangani event ketika tombol keluar pada jendela permainan
+            run = False #Ketika event ini terdeteksi, variabel run diubah menjadi False, yang menyebabkan keluar dari loop utama permainan dan mengakhiri permainan.
+        if event.type == pygame.MOUSEBUTTONDOWN and flying == False and game_over == False: #Pengecekan ini dilakukan untuk event saat tombol mouse ditekan dan kondisi flying dan game_over adalah False. 
+            flying = True  #Pengecekan ini dilakukan untuk event saat tombol mouse ditekan dan kondisi flying dan game_over adalah False. 
 
-    pygame.display.update()
-    
+    pygame.display.update() #Fungsi ini memperbarui tampilan layar permainan
+
+# Quit Pygame
 pygame.quit()
